@@ -1,3 +1,4 @@
+import inspect
 from fastapi import APIRouter, Depends, HTTPException
 from db import get_db
 from sqlalchemy.orm import Session
@@ -5,6 +6,7 @@ from models.users import Users
 from functions.users import all_users, update_user, create_user
 from routers.auth import current_active_user
 from schemas.users import UserCreate, UserUpdate, UserCurrent
+from utils.role_verification import role_verification
 
 router_user = APIRouter(prefix='/user', tags=['User apis'])
 
@@ -33,5 +35,6 @@ async def user_update(form: UserUpdate, db: Session = Depends(get_db)):
 
 
 @router_user.get("/current_active")
-async def get_current_active_user(user: UserCurrent = Depends(current_active_user)):
-    return user
+async def get_current_active_user(current_user: UserCurrent = Depends(current_active_user)):
+    role_verification(current_user, inspect.currentframe().f_code.co_name)
+    return current_user
